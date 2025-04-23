@@ -1,0 +1,163 @@
+
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Emoji Memory Challenge</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #e74c3c;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f2f5;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem;
+            max-width: 600px;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.5s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+            background: #ffeaa7;
+        }
+
+        .score-board {
+            display: flex;
+            gap: 2rem;
+            margin: 1rem;
+            font-size: 1.2rem;
+        }
+
+        #timer {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .reset-btn {
+            padding: 1rem 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Emoji Memory Challenge</h1>
+    <div class="score-board">
+        <div>Score: <span id="score">0</span></div>
+        <div>Time: <span id="timer">00:00</span></div>
+    </div>
+    <div class="game-board" id="gameBoard"></div>
+    <button class="reset-btn" onclick="startGame()">New Game</button>
+
+    <script>
+        const emojis = ['🎮', '🎲', '🎯', '🎨', '🎸', '🎭', '🎪', '🎫'];
+        let flippedCards = [];
+        let matches = 0;
+        let time = 0;
+        let timerId;
+
+        function createBoard() {
+            const doubledEmojis = [...emojis, ...emojis];
+            doubledEmojis.sort(() => Math.random() - 0.5);
+            
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            
+            doubledEmojis.forEach(emoji => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<span style="opacity:0">${emoji}</span>`;
+                card.addEventListener('click', () => flipCard(card, emoji));
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard(card, emoji) {
+            if(flippedCards.length < 2 && !card.classList.contains('flipped')) {
+                card.classList.add('flipped');
+                card.querySelector('span').style.opacity = '1';
+                flippedCards.push({card, emoji});
+                
+                if(flippedCards.length === 2) {
+                    checkMatch();
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            
+            if(card1.emoji === card2.emoji) {
+                matches++;
+                document.getElementById('score').textContent = matches;
+                if(matches === emojis.length) endGame();
+            } else {
+                setTimeout(() => {
+                    card1.card.classList.remove('flipped');
+                    card2.card.classList.remove('flipped');
+                    card1.card.querySelector('span').style.opacity = '0';
+                    card2.card.querySelector('span').style.opacity = '0';
+                }, 1000);
+            }
+            flippedCards = [];
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(time / 60).toString().padStart(2, '0');
+            const seconds = (time % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            time++;
+        }
+
+        function endGame() {
+            clearInterval(timerId);
+            alert(`🎉 You won! Time: ${document.getElementById('timer').textContent}`);
+        }
+
+        function startGame() {
+            clearInterval(timerId);
+            time = 0;
+            matches = 0;
+            flippedCards = [];
+            document.getElementById('score').textContent = '0';
+            timerId = setInterval(updateTimer, 1000);
+            createBoard();
+        }
+
+        // Start game initially
+        startGame();
+    </script>
+</body>
+</html>
+
+
+
+
